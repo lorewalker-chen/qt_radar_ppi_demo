@@ -10,10 +10,12 @@ CONFIG += c++11
 
 SOURCES += \
     main.cpp \
-    main_window.cpp
+    main_window.cpp \
+    plan_position_indicator.cpp
 
 HEADERS += \
-    main_window.h
+    main_window.h \
+    plan_position_indicator.h
 
 FORMS += \
     main_window.ui
@@ -22,3 +24,16 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+win32:CONFIG(debug,debug|release){
+    LIBS += -L$$PWD/lib_windows/ -lqwtd -lqwtpolard
+}
+win32:CONFIG(release,debug|release){
+    LIBS += -L$$PWD/lib_windows/ -lqwt -lqwtpolar
+}
+
+INCLUDEPATH += $$PWD/include/qwt
+DEPENDPATH += $$PWD/include/qwt
+
+INCLUDEPATH += $$PWD/include/qwt_polar
+DEPENDPATH += $$PWD/include/qwt_polar
