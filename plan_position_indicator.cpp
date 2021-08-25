@@ -46,6 +46,18 @@ void PlanPositionIndicator::InitGrid() {
     //依附到绘制区域
     grid_.attach(this);
 }
+//初始化平移器
+void PlanPositionIndicator::InitPanner() {
+    panner_ = new QwtPolarPanner(this->canvas());
+    //开启可平移
+    panner_->setEnabled(true);
+}
+//初始化缩放器
+void PlanPositionIndicator::InitZoomer() {
+    zoomer_ = new QwtPolarMagnifier(this->canvas());
+    //开启可缩放
+    zoomer_->setEnabled(true);
+}
 //角度刻度文字
 QwtText AzimuthScaleDraw::label(double value) const {
     //将360改为0
