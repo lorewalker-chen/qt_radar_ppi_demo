@@ -11,11 +11,13 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     main_window.cpp \
-    plan_position_indicator.cpp
+    plan_position_indicator.cpp \
+    radar_points.cpp
 
 HEADERS += \
     main_window.h \
-    plan_position_indicator.h
+    plan_position_indicator.h \
+    radar_points.h
 
 FORMS += \
     main_window.ui

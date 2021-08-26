@@ -1,4 +1,5 @@
 #include "plan_position_indicator.h"
+#include "radar_points.h"
 
 PlanPositionIndicator::PlanPositionIndicator(QWidget* parent): QwtPolarPlot(parent) {
     //根据传入区域调整大小
@@ -6,11 +7,54 @@ PlanPositionIndicator::PlanPositionIndicator(QWidget* parent): QwtPolarPlot(pare
     //初始化
     InitAll();
 }
+//添加点迹
+void PlanPositionIndicator::AddPoint(quint16 cpi, double radius, double azimuth) {
+    radar_points_->AddPoint(cpi, QwtPointPolar(azimuth, radius));
+    is_need_refresh_ = true;
+}
+//删除某个cpi周期的点迹
+void PlanPositionIndicator::RemovePoints(quint16 cpi) {
+    radar_points_->RemovePoints(cpi);
+    is_need_refresh_ = true;
+}
+//删除全部点迹
+void PlanPositionIndicator::RemoveAllPoints() {
+    radar_points_->RemoveAll();
+    is_need_refresh_ = true;
+}
+//设置是否根据cpi自动删除
+void PlanPositionIndicator::SetPointsAutoRemoveByCpi(bool enabled, quint16 interval) {
+    radar_points_->SetAutoRemoveByCpi(enabled, interval);
+}
+//设置点迹容量
+void PlanPositionIndicator::SetPointsCapacity(int points_capacity) {
+    radar_points_->SetCapacity(points_capacity);
+}
+//获取点迹容量
+int PlanPositionIndicator::PointsCapacity() {
+    return radar_points_->Capacity();
+}
+//设置点迹颜色
+void PlanPositionIndicator::SetPointsColor(const QColor& points_color) {
+    radar_points_->SetColor(points_color);
+    is_need_refresh_ = true;
+}
+//设置点迹尺寸
+void PlanPositionIndicator::SetPointsSize(const QSize& points_size) {
+    radar_points_->SetSize(points_size);
+    is_need_refresh_ = true;
+}
 //初始化
 void PlanPositionIndicator::InitAll() {
     InitStyle();
     InitScale();
     InitGrid();
+    InitPanner();
+    InitZoomer();
+    //初始雷达点迹
+    InitRadarPoints();
+    //初始化刷新定时器
+    InitRefreshTimer();
 }
 //初始化整体风格
 void PlanPositionIndicator::InitStyle() {
@@ -57,6 +101,22 @@ void PlanPositionIndicator::InitZoomer() {
     zoomer_ = new QwtPolarMagnifier(this->canvas());
     //开启可缩放
     zoomer_->setEnabled(true);
+}
+//初始化雷达点迹
+void PlanPositionIndicator::InitRadarPoints() {
+    radar_points_ = new RadarPoints(this);
+}
+//初始化刷新定时器
+void PlanPositionIndicator::InitRefreshTimer() {
+    connect(&timer_refresh_, &QTimer::timeout, this, &PlanPositionIndicator::Refresh);
+    timer_refresh_.start(40);
+}
+//刷新
+void PlanPositionIndicator::Refresh() {
+    if (is_need_refresh_) {
+        this->replot();
+        is_need_refresh_ = false;
+    }
 }
 //角度刻度文字
 QwtText AzimuthScaleDraw::label(double value) const {
