@@ -18,6 +18,7 @@ class MainWindow : public QMainWindow {
 
   private slots:
     void AddPoint();
+    void AddTrack();
 
   private:
     Ui::MainWindow* ui;
@@ -29,5 +30,9 @@ class MainWindow : public QMainWindow {
     quint16 point_cpi_ = 0;
     double point_r_ = 0;
     double point_a_ = 0;
+
+    QTimer* timer_add_track_ = nullptr;
+
+    RadarTrackInfo info;
 };
 #endif // MAINWINDOW_H

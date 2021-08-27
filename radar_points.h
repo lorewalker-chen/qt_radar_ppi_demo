@@ -5,7 +5,7 @@
 
 #include "qwt_polar_plot.h"
 #include "qwt_polar_curve.h"
-#include "qwt_symbol.h"
+
 
 /**
  * 雷达点迹数据类
@@ -42,7 +42,7 @@ class RadarPointsData: public QwtSeriesData<QwtPointPolar> {
     //所有数据列表,为了减少采样的时间复杂度
     QList<QwtPointPolar> data_all_;
 
-    //点迹数量上限
+    //点迹容量
     int capacity_ = -1;
     //点迹当前数量
     int count_ = 0;
@@ -54,6 +54,7 @@ class RadarPointsData: public QwtSeriesData<QwtPointPolar> {
 class RadarPoints {
   public:
     explicit RadarPoints(QwtPolarPlot* plot);
+    ~RadarPoints();
 
   public slots:
     //添加点
@@ -87,7 +88,7 @@ class RadarPoints {
 
   private:
     //QwtPolar绘图曲线
-    QwtPolarCurve points_curve_;
+    QwtPolarCurve* points_curve_ = nullptr;
     //绘图所用数据点集合
     RadarPointsData* points_data_ = nullptr;
     //标志点

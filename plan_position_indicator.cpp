@@ -1,5 +1,7 @@
 #include "plan_position_indicator.h"
-#include "radar_points.h"
+
+#include "qwt_polar_canvas.h"
+#include <QMouseEvent>
 
 PlanPositionIndicator::PlanPositionIndicator(QWidget* parent): QwtPolarPlot(parent) {
     //根据传入区域调整大小
@@ -44,6 +46,25 @@ void PlanPositionIndicator::SetPointsSize(const QSize& points_size) {
     radar_points_->SetSize(points_size);
     is_need_refresh_ = true;
 }
+//添加航迹
+void PlanPositionIndicator::AddTrackPoint(quint16 index, const RadarTrackInfo& info) {
+    radar_tracks_->AddTrackPoint(index, info);
+    is_need_refresh_ = true;
+}
+//删除指定批号的航迹
+void PlanPositionIndicator::RemoveTrack(quint16 index) {
+    radar_tracks_->RemoveTrack(index);
+    is_need_refresh_ = true;
+}
+//鼠标点击事件
+void PlanPositionIndicator::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton) {
+        //获取当前鼠标位置
+        QPoint point = canvas()->mapFromGlobal(QCursor::pos());
+        QwtPointPolar polar = canvas()->invTransform(point);
+        radar_tracks_->MarkTrack(polar.toPoint());
+    }
+}
 //初始化
 void PlanPositionIndicator::InitAll() {
     InitStyle();
@@ -51,8 +72,10 @@ void PlanPositionIndicator::InitAll() {
     InitGrid();
     InitPanner();
     InitZoomer();
-    //初始雷达点迹
+    //初始化雷达点迹
     InitRadarPoints();
+    //初始化雷达航迹
+    InitRadarTracks();
     //初始化刷新定时器
     InitRefreshTimer();
 }
@@ -105,6 +128,10 @@ void PlanPositionIndicator::InitZoomer() {
 //初始化雷达点迹
 void PlanPositionIndicator::InitRadarPoints() {
     radar_points_ = new RadarPoints(this);
+}
+//初始化雷达航迹
+void PlanPositionIndicator::InitRadarTracks() {
+    radar_tracks_ = new RadarTracks(this);
 }
 //初始化刷新定时器
 void PlanPositionIndicator::InitRefreshTimer() {

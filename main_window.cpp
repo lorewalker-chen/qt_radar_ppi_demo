@@ -18,11 +18,19 @@ MainWindow::MainWindow(QWidget* parent)
     timer_add_point_ = new QTimer;
     connect(timer_add_point_, &QTimer::timeout, this, &MainWindow::AddPoint);
     timer_add_point_->start(100);
+
+    //添加航迹定时器
+    timer_add_track_ = new QTimer;
+    connect(timer_add_track_, &QTimer::timeout, this, &MainWindow::AddTrack);
+    timer_add_track_->start(100);
 }
 
 MainWindow::~MainWindow() {
     timer_add_point_->stop();
     timer_add_point_->deleteLater();
+
+    timer_add_track_->stop();
+    timer_add_track_->deleteLater();
 
     ppi_->deleteLater();
     delete ui;
@@ -35,6 +43,20 @@ void MainWindow::AddPoint() {
     point_a_ += 0.1;
     if (point_a_ > 360.0) {
         point_a_ -= 360.0;
+    }
+}
+
+void MainWindow::AddTrack() {
+    info.index = info.end_radius / 100;
+    info.end_radius += 10;
+    info.end_azimuth += 1;
+    if (info.end_azimuth > 360.0) {
+        info.end_azimuth -= 360.0;
+    }
+    ppi_->AddTrackPoint(info.index, info);
+
+    if (info.index == 10) {
+        ppi_->RemoveTrack(0);
     }
 }
 

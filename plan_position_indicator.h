@@ -1,6 +1,9 @@
 #ifndef PLANPOSITIONINDICATOR_H
 #define PLANPOSITIONINDICATOR_H
 
+#include "radar_points.h"
+#include "radar_tracks.h"
+
 #include "qwt_polar_plot.h"
 #include "qwt_round_scale_draw.h"
 #include "qwt_scale_draw.h"
@@ -10,7 +13,6 @@
 
 #include <QTimer>
 
-class RadarPoints;
 class PlanPositionIndicator: public QwtPolarPlot {
     Q_OBJECT
 
@@ -21,7 +23,7 @@ class PlanPositionIndicator: public QwtPolarPlot {
     //雷达点迹相关
     //添加点迹
     void AddPoint(quint16 cpi, double radius, double azimuth);
-    //删除某个cpi周期的点迹
+    //删除指定cpi周期的点迹
     void RemovePoints(quint16 cpi);
     //删除全部点迹
     void RemoveAllPoints();
@@ -40,6 +42,14 @@ class PlanPositionIndicator: public QwtPolarPlot {
     //设置点迹尺寸
     void SetPointsSize(const QSize& points_size);
 
+    //雷达航迹相关
+    //添加航迹
+    void AddTrackPoint(quint16 index, const RadarTrackInfo& info);
+    //删除指定批号的航迹
+    void RemoveTrack(quint16 index);
+
+  protected:
+    void mousePressEvent(QMouseEvent* event) override;
 
   private slots:
     void InitAll();//初始化
@@ -49,6 +59,7 @@ class PlanPositionIndicator: public QwtPolarPlot {
     void InitPanner();//初始化平移器
     void InitZoomer();//初始化缩放器
     void InitRadarPoints();//初始化雷达点迹
+    void InitRadarTracks();//初始化雷达航迹
 
     void InitRefreshTimer();//初始化刷新定时器
 
@@ -66,6 +77,8 @@ class PlanPositionIndicator: public QwtPolarPlot {
 
     //点迹
     RadarPoints* radar_points_ = nullptr;
+    //航迹
+    RadarTracks* radar_tracks_ = nullptr;
 
     //是否需要刷新
     bool is_need_refresh_ = false;

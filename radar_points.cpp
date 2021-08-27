@@ -1,14 +1,16 @@
 #include "radar_points.h"
+#include "qwt_symbol.h"
 
 /**
  * 雷达点迹数据类
  */
 RadarPointsData::RadarPointsData() {
     data_cpi_.clear();
+    data_all_.clear();
 }
 //添加点
 void RadarPointsData::AddPoint(quint16 cpi, const QwtPointPolar& polar) {
-    //如果超过容量上限,删除第一个点
+    //如果超过容量,删除第一个点
     if (capacity_ > 0 && count_ > capacity_) {
         data_cpi_.first().removeFirst();
         //计数-1
@@ -82,7 +84,11 @@ RadarPoints::RadarPoints(QwtPolarPlot* plot) {
     //初始化
     InitAll();
     //将曲线依附到图层上
-    points_curve_.attach(plot);
+    points_curve_->attach(plot);
+}
+
+RadarPoints::~RadarPoints() {
+    delete  points_curve_;
 }
 //添加点
 void RadarPoints::AddPoint(quint16 cpi, const QwtPointPolar& polar) {
@@ -151,11 +157,12 @@ void RadarPoints::InitSymbol() {
 }
 //初始化曲线
 void RadarPoints::InitCurve() {
+    points_curve_ = new QwtPolarCurve;
     //只画点
-    points_curve_.setStyle(QwtPolarCurve::NoCurve);
+    points_curve_->setStyle(QwtPolarCurve::NoCurve);
     //设置标志
-    points_curve_.setSymbol(points_symbol_);
+    points_curve_->setSymbol(points_symbol_);
     //设置数据
     points_data_ = new RadarPointsData;
-    points_curve_.setData(points_data_);
+    points_curve_->setData(points_data_);
 }
