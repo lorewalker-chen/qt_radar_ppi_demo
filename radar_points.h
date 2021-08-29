@@ -6,7 +6,6 @@
 #include "qwt_polar_plot.h"
 #include "qwt_polar_curve.h"
 
-
 /**
  * 雷达点迹数据类
  */
@@ -69,6 +68,10 @@ class RadarPoints {
      * false：interval无效。
      */
     void SetAutoRemoveByCpi(bool enabled, quint16 interval = 20);
+    //显示点
+    void Show();
+    //隐藏点
+    void Hide();
     //设置点迹颜色
     void SetColor(const QColor& color);
     //设置点尺寸

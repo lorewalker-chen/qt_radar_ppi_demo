@@ -117,6 +117,14 @@ void RadarPoints::SetAutoRemoveByCpi(bool enabled, quint16 interval) {
         is_auto_remove_by_cpi_ = false;
     }
 }
+//显示点
+void RadarPoints::Show() {
+    points_curve_->show();
+}
+//隐藏点
+void RadarPoints::Hide() {
+    points_curve_->hide();
+}
 //设置点迹颜色
 void RadarPoints::SetColor(const QColor& color) {
     //标志轮廓颜色
