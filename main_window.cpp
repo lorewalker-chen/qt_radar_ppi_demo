@@ -9,9 +9,9 @@ MainWindow::MainWindow(QWidget* parent)
     ui->setupUi(this);
     ppi_ = new PlanPositionIndicator(ui->widget_ppi);
     //开启自动刷新
-    ppi_->SetPointsAutoRemoveByCpi(false);
+//    ppi_->SetPointsAutoRemoveByCpi(false);
     //设置点迹颜色
-    ppi_->SetPointsColor(Qt::red);
+//    ppi_->SetPointsColor(Qt::red);
     //设置点迹大小
 //    ppi_->SetPointsSize(QSize(10, 10));
     //添加点迹定时器
@@ -37,7 +37,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::AddPoint() {
-    ppi_->AddPoint(point_cpi_, point_r_, point_a_);
+//    ppi_->AddPoint(point_cpi_, point_r_, point_a_);
     point_cpi_ = point_r_ / 10;
     point_r_ += 10;
     point_a_ += 0.1;
@@ -47,13 +47,13 @@ void MainWindow::AddPoint() {
 }
 
 void MainWindow::AddTrack() {
-    info.index = info.end_radius / 100;
-    info.end_radius += 10;
-    info.end_azimuth += 1;
-    if (info.end_azimuth > 360.0) {
-        info.end_azimuth -= 360.0;
+    info.index = info.last_point_radius / 100;
+    info.last_point_radius += 10;
+    info.last_point_azimuth += 1;
+    if (info.last_point_azimuth > 360.0) {
+        info.last_point_azimuth -= 360.0;
     }
-    ppi_->AddTrackPoint(info.index, info);
+    ppi_->AddTrack(info);
 
     if (info.index == 10) {
         ppi_->RemoveTrack(0);

@@ -8,18 +8,14 @@ CONFIG += c++11
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+include(./ppi/ppi.pri)
+
 SOURCES += \
     main.cpp \
     main_window.cpp \
-    plan_position_indicator.cpp \
-    radar_points.cpp \
-    radar_tracks.cpp
 
 HEADERS += \
     main_window.h \
-    plan_position_indicator.h \
-    radar_points.h \
-    radar_tracks.h
 
 FORMS += \
     main_window.ui
@@ -28,16 +24,3 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-win32:CONFIG(debug,debug|release){
-    LIBS += -L$$PWD/lib_windows/ -lqwtd -lqwtpolard
-}
-win32:CONFIG(release,debug|release){
-    LIBS += -L$$PWD/lib_windows/ -lqwt -lqwtpolar
-}
-
-INCLUDEPATH += $$PWD/include/qwt
-DEPENDPATH += $$PWD/include/qwt
-
-INCLUDEPATH += $$PWD/include/qwt_polar
-DEPENDPATH += $$PWD/include/qwt_polar

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "plan_position_indicator.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
