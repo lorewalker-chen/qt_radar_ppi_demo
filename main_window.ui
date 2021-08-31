@@ -27,6 +27,16 @@
      <string notr="true">background-color: rgb(0, 0, 0);</string>
     </property>
    </widget>
+   <widget class="QTableView" name="tableView">
+    <property name="geometry">
+     <rect>
+      <x>1020</x>
+      <y>10</y>
+      <width>571</width>
+      <height>511</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

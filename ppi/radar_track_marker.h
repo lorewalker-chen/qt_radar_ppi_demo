@@ -7,23 +7,21 @@ class RadarTrackMarker: public QwtPolarMarker {
   public:
     RadarTrackMarker();
 
-    //内容设置
+    //设置文字
     void SetText(const QString& text);
-    //颜色设置
+    //设置颜色
     void SetColor(const QColor& color);//所有颜色
-    void SetSymbolColor(const QColor& symbol_color);//标志颜色
-    void SetTextColor(const QColor& text_color);//文字颜色
+    void SetTextColor(const QColor& color);//文字
+    void SetSymbolColor(const QColor& color);//标志点
 
   private :
     //初始化
     void InitAll();
-    void InitSymbol();//初始化标志
-    void InitText();//初始化文字
+    void InitSymbol();//标志点
+    void InitText();//文字
 
-    //标志
-    QwtSymbol* symbol_ = nullptr;
-    //文字
-    QwtText text_;
+    QwtSymbol* marker_symbol_ = nullptr;
+    QwtText marker_text_;
 };
 
 #endif // RADARTRACKMARKER_H

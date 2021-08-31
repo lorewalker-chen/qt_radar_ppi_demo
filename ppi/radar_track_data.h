@@ -7,7 +7,7 @@ class RadarTrackData: public QwtSeriesData<QwtPointPolar> {
   public:
     RadarTrackData();
 
-    //添加点
+    //添加航迹点
     void AddTrackPoint(const QwtPointPolar& polar);
     //到指定点的最小距离
     double MinDistanceToPoint(const QwtPointPolar& polar);
@@ -21,7 +21,7 @@ class RadarTrackData: public QwtSeriesData<QwtPointPolar> {
     virtual QRectF boundingRect() const;
 
     //数据列表
-    QList<QwtPointPolar> data_all_;
+    QList<QwtPointPolar> data_;
 };
 
 #endif // RADARTRACKDATA_H

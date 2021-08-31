@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "plan_position_indicator.h"
+#include "radar_track_table_model.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,6 +26,8 @@ class MainWindow : public QMainWindow {
     Ui::MainWindow* ui;
 
     PlanPositionIndicator* ppi_ = nullptr;
+
+    RadarTrackTableModel* model_ = nullptr;
 
     QTimer* timer_add_point_ = nullptr;
 

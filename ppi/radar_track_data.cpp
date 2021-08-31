@@ -1,32 +1,35 @@
 #include "radar_track_data.h"
 
 RadarTrackData::RadarTrackData() {
-    data_all_.clear();
+    data_.clear();
 }
-//添加点
+//添加航迹点
 void RadarTrackData::AddTrackPoint(const QwtPointPolar& polar) {
-    data_all_.append(polar);
+    data_.append(polar);
 }
-//离指定点的最小距离
+//到指定点的最小距离
 double RadarTrackData::MinDistanceToPoint(const QwtPointPolar& polar) {
-    double distance = 65535;
-    QPointF point = polar.toPoint();
-    for (QwtPointPolar polar : data_all_) {
-        QPointF temp_p = polar.toPoint();
-        double temp_d = sqrtf(powf((temp_p.x() - point.x()), 2) + powf((temp_p.y() - point.y()), 2));
-        if (temp_d < distance) {
-            distance = temp_d;
+    double distance = 500;
+    double r0 = polar.radius();
+    double a0 = polar.azimuth();
+    for (QwtPointPolar temp_polar : data_) {
+        double r1 = temp_polar.radius();
+        double a1 = temp_polar.azimuth();
+        //余弦定理计算距离
+        double temp_distance = sqrtf(powf(r0, 2) + powf(r1, 2) - 2 * r0 * r1 * cos((a0 - a1) * M_PI / 180.0));
+        if (temp_distance < distance) {
+            distance = temp_distance;
         }
     }
     return distance;
 }
 //返回总点数
 size_t RadarTrackData::size() const {
-    return data_all_.size();
+    return data_.size();
 }
 //采样，返回从0~(size-1)的每个点
 QwtPointPolar RadarTrackData::sample(size_t i) const {
-    return data_all_.at(i);
+    return data_.at(i);
 }
 //返回绘图区域
 QRectF RadarTrackData::boundingRect() const {
