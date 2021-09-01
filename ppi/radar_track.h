@@ -1,18 +1,10 @@
 #ifndef RADARTRACK_H
 #define RADARTRACK_H
 
+#include "radar_track_info.h"
+
 #include "qwt_point_polar.h"
 #include <QColor>
-
-/**
- * @brief 航迹信息结构体
- */
-struct RadarTrackInfo {
-    int index = -1; //批号
-    double last_point_radius = 0; //末尾距离
-    double last_point_azimuth = 0; //末尾方位
-    bool is_end = false; //是否结束
-};
 
 class QwtPolarPlot;
 class QwtSymbol;
@@ -40,6 +32,9 @@ class RadarTrack {
     void SetMarked(bool is_marked);
     //航迹是否被标记
     bool IsMarked();
+
+    //获取航迹时间
+    QTime GetTrackTime();
 
     //设置航迹是否结束
     void SetEnd(bool is_end);

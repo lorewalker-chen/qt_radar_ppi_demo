@@ -5,8 +5,11 @@
 #include "qwt_polar_magnifier.h"
 #include "qwt_polar_canvas.h"
 
-#include <QMenu>
 #include <QLabel>
+#include <QDateTimeEdit>
+
+#include <QMenu>
+
 #include <QEvent>
 #include <QMouseEvent>
 #include <QKeyEvent>
@@ -21,7 +24,7 @@ class AzimuthScaleDraw: public QwtRoundScaleDraw {
     virtual QwtText label(double value) const {
         //将360改为0
         if (qFuzzyCompare(fmod(value, 360), 0.0)) {
-            return QString("0");
+            return QString("N");
         }
         return QwtRoundScaleDraw::label(value);
     }
@@ -74,8 +77,16 @@ PlanPositionIndicator::~PlanPositionIndicator() {
     delete panner_;
     delete magnifier_;
 
-    label_->deleteLater();
+    left_up_label_->deleteLater();
+    left_down_label_->deleteLater();
+    right_up_label_->deleteLater();
+    right_down_label_->deleteLater();
+
     menu_->deleteLater();
+}
+//设置点迹颜色
+void PlanPositionIndicator::SetPointsColor(const QColor& color) {
+    radar_points_->SetColor(color);
 }
 //添加点迹
 void PlanPositionIndicator::AddPoint(int cpi, double radius, double azimuth) {
@@ -83,30 +94,39 @@ void PlanPositionIndicator::AddPoint(int cpi, double radius, double azimuth) {
     if (is_auto_clear_points_) {
         radar_points_->RemovePoints(cpi - auto_clear_points_cpi_);
     }
-    radar_points_->AddPoint(cpi, QwtPointPolar(azimuth, radius));
+    radar_points_->AddPoint(cpi, QwtPointPolar(azimuth + north_angle_, radius));
     //如果不显示点迹
     if (!is_show_points_) {
         HidePoints();
     }
+    //更新左下角标签
+    UpdateLeftDownLabel();
     //更改刷新标志
     is_need_refresh_ = true;
 }
 //删除指定cpi点迹
 void PlanPositionIndicator::RemovePoints(int cpi) {
     radar_points_->RemovePoints(cpi);
+    //更新左下角标签
+    UpdateLeftDownLabel();
     //更改刷新标志
     is_need_refresh_ = true;
 }
 //删除所有点迹
 void PlanPositionIndicator::ClearPoints() {
     radar_points_->RemoveAllPoints();
+    //更新左下角标签
+    UpdateLeftDownLabel();
     //更改刷新标志
     is_need_refresh_ = true;
 }
+//设置自动清点cpi
+void PlanPositionIndicator::SetAutoClearPointsCpi(int cpi) {
+    auto_clear_points_cpi_ = cpi;
+}
 //设置是否根据cpi间隔自动清除航迹
-void PlanPositionIndicator::SetAutoClearPointsByCpi(bool enable, int per_cpi) {
+void PlanPositionIndicator::SetAutoClearPointsByCpi(bool enable) {
     is_auto_clear_points_ = enable;
-    auto_clear_points_cpi_ = per_cpi;
 }
 //显示点迹
 void PlanPositionIndicator::ShowPoints() {
@@ -118,8 +138,18 @@ void PlanPositionIndicator::HidePoints() {
     radar_points_->HidePoints();
     is_show_points_ = false;
 }
+//设置航迹颜色
+void PlanPositionIndicator::SetTracksColor(const QColor& color) {
+    tracks_color = color;
+}
+//设置被标记航迹颜色
+void PlanPositionIndicator::SetTracksMarkedColor(const QColor& color) {
+    tracks_marked_color = color;
+}
 //添加航迹点
-void PlanPositionIndicator::AddTrackPoint(const RadarTrackInfo& info) {
+void PlanPositionIndicator::AddTrackPoint(RadarTrackInfo info) {
+    //加上北向角
+    info.azimuth += north_angle_;
     //如果不存在该批号的航迹，新建
     if (!radar_tracks_.contains(info.index)) {
         RadarTrack* track = new RadarTrack(this);
@@ -133,6 +163,8 @@ void PlanPositionIndicator::AddTrackPoint(const RadarTrackInfo& info) {
     if (!is_show_tracks_) {
         HideTracks();
     }
+    //更新左下角标签
+    UpdateLeftDownLabel();
     //更改刷新标志
     is_need_refresh_ = true;
 }
@@ -142,6 +174,8 @@ void PlanPositionIndicator::RemoveTrack(int index) {
         return;
     }
     RemoveTrackFromHash(index);
+    //更新左下角标签
+    UpdateLeftDownLabel();
     //更改刷新标志
     is_need_refresh_ = true;
 }
@@ -150,14 +184,21 @@ void PlanPositionIndicator::ClearTracks() {
     for (int index : radar_tracks_.keys()) {
         RemoveTrackFromHash(index);
     }
+    //更新左下角标签
+    UpdateLeftDownLabel();
     //更改刷新标志
     is_need_refresh_ = true;
 }
+//设置自动清航超时时间
+void PlanPositionIndicator::SetAutoClearTracksTime(int msec) {
+    track_timeout_msec_ = msec;
+}
 //设置是否根据时间自动清除航迹
-void PlanPositionIndicator::SetAutoClearTracksByTime(bool enable, int timeout_msec) {
-    if (enable) {
-        timer_auto_clear_tracks_->start(timeout_msec / 2);
-    } else if (timer_auto_clear_tracks_->isActive()) {
+void PlanPositionIndicator::SetAutoClearTracksByTime(bool enable) {
+    if (enable && !timer_auto_clear_tracks_->isActive()) {
+        timer_auto_clear_tracks_->start(500);
+    }
+    if (!enable && timer_auto_clear_tracks_->isActive()) {
         timer_auto_clear_tracks_->stop();
     }
 }
@@ -181,11 +222,6 @@ void PlanPositionIndicator::HideTracks() {
     //更改刷新标志
     is_need_refresh_ = true;
 }
-//手动清屏
-void PlanPositionIndicator::ClearAll() {
-    ClearPoints();
-    ClearTracks();
-}
 //设置量程
 void PlanPositionIndicator::SetRange(double range_meter) {
     //重新设置极径刻度
@@ -194,17 +230,30 @@ void PlanPositionIndicator::SetRange(double range_meter) {
     //更改刷新标志
     is_need_refresh_ = true;
 }
-//设置点迹颜色
-void PlanPositionIndicator::SetPointsColor(const QColor& color) {
-    radar_points_->SetColor(color);
+//设置北向角
+void PlanPositionIndicator::SetNorthAngle(double angle) {
+    north_angle_ = angle;
+    //更新左上标签
+    UpdateLeftUpLabel();
 }
-//设置航迹颜色
-void PlanPositionIndicator::SetTracksColor(const QColor& color) {
-    tracks_color = color;
+//设置位置
+void PlanPositionIndicator::SetPosition(double longitude, double latitude, double height) {
+    longitude_ = longitude;
+    latitude_ = latitude;
+    height_ = height;
+    //更新右上标签
+    UpdateRightUpLabel();
 }
-//设置被标记航迹颜色
-void PlanPositionIndicator::SetTracksMarkedColor(const QColor& color) {
-    tracks_marked_color = color;
+//设置时间
+void PlanPositionIndicator::SetDateTime(const QDateTime& date_time) {
+    current_date_time_ = date_time;
+    //更新右下标签
+    UpdateRightDownLabel();
+}
+//手动清屏
+void PlanPositionIndicator::ClearAll() {
+    ClearPoints();
+    ClearTracks();
 }
 //事件过滤器
 bool PlanPositionIndicator::eventFilter(QObject* obj, QEvent* event) {
@@ -215,7 +264,7 @@ bool PlanPositionIndicator::eventFilter(QObject* obj, QEvent* event) {
         QwtPointPolar polar = canvas()->invTransform(point);
         mouse_radius_ = polar.radius();
         mouse_azimuth_ = polar.azimuth();
-        UpdateLabel();
+        UpdateLeftUpLabel();
     }
     return QFrame::eventFilter(obj, event);
 }
@@ -232,7 +281,7 @@ void PlanPositionIndicator::mousePressEvent(QMouseEvent* event) {
 //键盘按键事件
 void PlanPositionIndicator::keyPressEvent(QKeyEvent* event) {
     if (event->key() == Qt::Key_F5) {
-        ClearAll();
+        ClearPoints();
     }
 }
 //右键菜单事件
@@ -248,7 +297,7 @@ void PlanPositionIndicator::InitAll() {
     InitPanner();//初始化平移器
     InitMagnifier();//初始化放大器
     InitPoints();//初始化点迹
-    InitLabel();//初始化左上角标签
+    InitLabel();//初始化标签
     InitMenu();//初始化右键菜单
     InitTimer();//初始化定时器
 
@@ -301,16 +350,45 @@ void PlanPositionIndicator::InitPanner() {
 //初始化放大器
 void PlanPositionIndicator::InitMagnifier() {
     magnifier_ = new QwtPolarMagnifier(this->canvas());
+    //禁用鼠标按键
+    magnifier_->setMouseButton(Qt::NoButton);
     //开启可放大
     magnifier_->setEnabled(true);
 }
-//初始化左上角标签
+//初始化标签
 void PlanPositionIndicator::InitLabel() {
-    label_ = new QLabel(this);
-    label_->move(10, 10);
-    label_->setStyleSheet("color:white");
-    label_->setFont(QFont("Times New Romans", 10));
-    UpdateLabel();
+    //左上角
+    left_up_label_ = new QLabel(this);
+    //设置字体颜色白色，背景色透明
+    left_up_label_->setStyleSheet("color:white;background-color: transparent;");
+    left_up_label_->setFont(QFont("Times New Romans", 15, QFont::Bold));
+    UpdateLeftUpLabel();
+
+    //左下角
+    left_down_label_ = new QLabel(this);
+    //设置字体颜色白色，背景色透明
+    left_down_label_->setStyleSheet("color:white;background-color: transparent;");
+    left_down_label_->setFont(QFont("Times New Romans", 15, QFont::Bold));
+    UpdateLeftDownLabel();
+
+    //右上角
+    right_up_label_ = new QLabel(this);
+    //设置字体颜色白色，背景色透明
+    right_up_label_->setStyleSheet("color:white;background-color: transparent;");
+    right_up_label_->setFont(QFont("Times New Romans", 15, QFont::Bold));
+    UpdateRightUpLabel();
+
+    //右下角
+    right_down_label_ = new QDateTimeEdit(this);
+    //设置字体颜色白色，背景色透明
+    right_down_label_->setStyleSheet("color:white;border: 0px solid black;background-color: transparent;");
+    //设置显示格式
+    right_down_label_->setDisplayFormat("yyyy/MM/dd hh:mm:ss");
+    //设置不可编辑
+    right_down_label_->setEnabled(false);
+    right_down_label_->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    right_down_label_->setFont(QFont("Times New Romans", 15, QFont::Bold));
+    UpdateRightDownLabel();
 }
 //初始化右键菜单
 void PlanPositionIndicator::InitMenu() {
@@ -329,12 +407,20 @@ void PlanPositionIndicator::InitMenu() {
     menu_->addAction(show_tracks);
     //间隔符
     menu_->addSeparator();
+    //航迹自动刷新
+    QAction* auto_clear_tracks = new QAction("航迹自动刷新", menu_);
+    auto_clear_tracks->setCheckable(true);
+    auto_clear_tracks->setChecked(true);
+    connect(auto_clear_tracks, &QAction::toggled, this, &PlanPositionIndicator::SetAutoClearTracksByTime);
+    menu_->addAction(auto_clear_tracks);
+    //间隔符
+    menu_->addSeparator();
     //清空点迹
-    menu_->addAction("清空点迹", this, &PlanPositionIndicator::ClearPoints);
+    menu_->addAction("清空点迹(F5)", this, &PlanPositionIndicator::ClearPoints);
     //清空航迹
     menu_->addAction("清空航迹", this, &PlanPositionIndicator::ClearTracks);
     //清屏
-    menu_->addAction("清屏(F5)", this, &PlanPositionIndicator::ClearAll);
+    menu_->addAction("清屏", this, &PlanPositionIndicator::ClearAll);
 }
 //初始化点迹
 void PlanPositionIndicator::InitPoints() {
@@ -345,18 +431,56 @@ void PlanPositionIndicator::InitTimer() {
     //自动清航定时器
     timer_auto_clear_tracks_ = new QTimer;
     connect(timer_auto_clear_tracks_, &QTimer::timeout, this, &PlanPositionIndicator::AutoClearTracksByTime);
+    timer_auto_clear_tracks_->start(500);
     //刷新定时器
     timer_refresh_ = new QTimer;
     connect(timer_refresh_, &QTimer::timeout, this, &PlanPositionIndicator::Refresh);
     timer_refresh_->start(40);
 }
 //更新左上角标签
-void PlanPositionIndicator::UpdateLabel() {
-    QString str = QString("北向角：%0°\n距离：%1m\n方位：%2°\n")
+void PlanPositionIndicator::UpdateLeftUpLabel() {
+    QString str = QString("北向角：%0°\n距离：%1m\n方位：%2°")
                   .arg(QString::number(north_angle_, 'f', 2))
                   .arg(QString::number(mouse_radius_, 'f', 2))
                   .arg(QString::number(mouse_azimuth_, 'f', 2));
-    label_->setText(str);
+    left_up_label_->setText(str);
+    //调整大小
+    left_up_label_->adjustSize();
+    //更新标签位置
+    left_up_label_->move(10, 10);
+}
+//更新左下角标签
+void PlanPositionIndicator::UpdateLeftDownLabel() {
+    count_points_ = radar_points_->Count();
+    count_tracks_ = radar_tracks_.size();
+    QString str = QString("点迹数：%0\n航迹数：%1")
+                  .arg(count_points_)
+                  .arg(count_tracks_);
+    left_down_label_->setText(str);
+    //调整大小
+    left_down_label_->adjustSize();
+    //更新标签位置
+    left_down_label_->move(10, height() - left_up_label_->height() - 10);
+}
+//更新右上角标签
+void PlanPositionIndicator::UpdateRightUpLabel() {
+    QString str = QString("经度：%0°\n纬度：%1°\n高度：%2m")
+                  .arg(QString::number(longitude_, 'f', 6))
+                  .arg(QString::number(latitude_, 'f', 6))
+                  .arg(QString::number(height_, 'f', 3));
+    right_up_label_->setText(str);
+    //调整大小
+    right_up_label_->adjustSize();
+    //更新标签位置
+    right_up_label_->move(width() - right_up_label_->width() - 10, 10);
+}
+//更新右下角标签
+void PlanPositionIndicator::UpdateRightDownLabel() {
+    right_down_label_->setDateTime(current_date_time_);
+    //调整大小
+    right_down_label_->adjustSize();
+    //更新标签位置
+    right_down_label_->move(width() - right_down_label_->width() - 10, height() - right_down_label_->height() - 10);
 }
 //设置点迹状态
 void PlanPositionIndicator::SetPointsStatus(bool is_show) {
@@ -376,6 +500,10 @@ void PlanPositionIndicator::SetTracksStatus(bool is_show) {
 }
 //从哈希表中删除指定批号航迹
 void PlanPositionIndicator::RemoveTrackFromHash(int index) {
+    //如果被标记，标记标志-1
+    if (radar_tracks_.value(index)->IsMarked()) {
+        marked_count_ -= 1;
+    }
     delete radar_tracks_[index];
     radar_tracks_[index] = nullptr;
     radar_tracks_.remove(index);
@@ -384,15 +512,13 @@ void PlanPositionIndicator::RemoveTrackFromHash(int index) {
 }
 /**
  * @brief 根据时间自动清航
- * 每次调用删除已经被标记为结束的航迹，将其余航迹标记为结束
- * 下次调用前如果该航迹没有新增的点，则仍被标记为结束，将其删除
+ * 判断当前时间与航迹时间的差是否满足超时
  */
 void PlanPositionIndicator::AutoClearTracksByTime() {
+    QTime current_time = QTime::currentTime();
     for (int index : radar_tracks_.keys()) {
-        if (radar_tracks_.value(index)->IsEnd() && !radar_tracks_.value(index)->IsMarked()) {
+        if (radar_tracks_.value(index)->GetTrackTime().msecsTo(current_time) >= track_timeout_msec_) {
             RemoveTrack(index);
-        } else {
-            radar_tracks_.value(index)->SetEnd(true);
         }
     }
 }

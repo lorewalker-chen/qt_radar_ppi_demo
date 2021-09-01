@@ -13,6 +13,7 @@ HEADERS += \
     $$PWD/radar_points_data.h \
     $$PWD/radar_track.h \
     $$PWD/radar_track_data.h \
+    $$PWD/radar_track_info.h \
     $$PWD/radar_track_marker.h \
     $$PWD/radar_track_table_model.h
 

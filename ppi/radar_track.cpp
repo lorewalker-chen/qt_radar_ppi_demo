@@ -31,7 +31,7 @@ void RadarTrack::AddTrackPoint(const RadarTrackInfo& info) {
     //更新航迹信息
     track_info_ = info;
     //添加到数据列表
-    QwtPointPolar polar = QwtPointPolar(info.last_point_azimuth, info.last_point_radius);
+    QwtPointPolar polar = QwtPointPolar(info.azimuth, info.radius);
     track_data_->AddTrackPoint(polar);
     //更新标牌位置
     track_marker_->setPosition(polar);
@@ -65,8 +65,8 @@ void RadarTrack::SetMarked(bool is_marked) {
         //详细标牌文字
         QString str = QString("批号：%0\n距离：%1\n方位：%2")
                       .arg(track_info_.index)
-                      .arg(QString::number(track_info_.last_point_radius, 'f', 2))
-                      .arg(QString::number(track_info_.last_point_azimuth, 'f', 2));
+                      .arg(QString::number(track_info_.radius, 'f', 2))
+                      .arg(QString::number(track_info_.azimuth, 'f', 2));
         track_marker_->SetText(str);
     } else {
         SetColor(color_);
@@ -79,6 +79,10 @@ void RadarTrack::SetMarked(bool is_marked) {
 //航迹是否被标记
 bool RadarTrack::IsMarked() {
     return is_marked_;
+}
+//获取航迹时间
+QTime RadarTrack::GetTrackTime() {
+    return track_info_.time;
 }
 //设置结束标记
 void RadarTrack::SetEnd(bool is_end) {

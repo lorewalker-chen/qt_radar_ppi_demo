@@ -8,13 +8,18 @@ MainWindow::MainWindow(QWidget* parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
     ppi_ = new PlanPositionIndicator(ui->widget_ppi);
+    //设置位置
+    ppi_->SetPosition(1, 2, 3);
+    //设置北向角
+//    ppi_->SetNorthAngle(180);
     //设置ppi量程
-    ppi_->SetRange(1600);
+//    ppi_->SetRange(1600);
     //航迹
     ppi_->SetTracksColor(Qt::green);
     ppi_->SetTracksMarkedColor(Qt::white);
     //开启自动刷新航迹
-    ppi_->SetAutoClearTracksByTime(false, 10000);
+    ppi_->SetAutoClearTracksTime(5000);
+    ppi_->SetAutoClearTracksByTime(true);
 
     //开启自动刷新点迹
     ppi_->SetAutoClearPointsByCpi(true);
@@ -59,30 +64,31 @@ void MainWindow::AddPoint() {
     point_cpi_ = point_r_ / 100;
     point_r_ += 10;
     point_a_ += 0.1;
+    info.type = "人";
     if (point_a_ > 360.0) {
         point_a_ -= 360.0;
     }
+
+    ppi_->SetDateTime(QDateTime::currentDateTime());
 }
 
 void MainWindow::AddTrack() {
-    info.index = info.last_point_radius / 100;
-    info.last_point_radius += 10;
-    info.last_point_azimuth += 1;
-    if (info.last_point_azimuth > 360.0) {
-        info.last_point_azimuth -= 360.0;
+    info.index = info.radius / 100;
+    info.radius += 10;
+    info.azimuth += 1;
+    info.type = "人";
+    info.time = QTime::currentTime();
+
+    if (info.azimuth > 360.0) {
+        info.azimuth -= 360.0;
     }
     ppi_->AddTrackPoint(info);
 
     if (info.index == 10) {
-        timer_add_track_->stop();
+//        timer_add_track_->stop();
 //        ppi_->RemoveTrack(0);
     }
     //添加到表格
-    TrackTableItem item;
-    item.index = info.index;
-    item.distance = info.last_point_radius;
-    item.azimuth = info.last_point_azimuth;
-    item.type = "人";
-    model_->AddItem(item);
+    model_->AddItem(info);
 }
 

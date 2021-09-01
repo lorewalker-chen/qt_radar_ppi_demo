@@ -12,6 +12,7 @@ class QwtPolarPanner;
 class QwtPolarMagnifier;
 
 class QLabel;
+class QDateTimeEdit;
 class QMenu;
 
 class PlanPositionIndicator : public QwtPolarPlot {
@@ -22,53 +23,32 @@ class PlanPositionIndicator : public QwtPolarPlot {
 
   public slots:
     //点迹相关
-    //添加点迹
-    void AddPoint(int cpi, double radius, double azimuth);
-    //删除指定cpi点迹
-    void RemovePoints(int cpi);
-    //删除所有点迹
-    void ClearPoints();
-    /**
-     * @brief 设置是否根据cpi间隔自动清除航迹
-     * @param enable: 使能
-     * @param per_cpi: 间隔多少cpi，使能关时无效
-     */
-    void SetAutoClearPointsByCpi(bool enable, int per_cpi = 20);
-    //显示点迹
-    void ShowPoints();
-    //隐藏点迹
-    void HidePoints();
-
+    void SetPointsColor(const QColor& color);//设置点迹颜色
+    void AddPoint(int cpi, double radius, double azimuth);//添加点迹
+    void RemovePoints(int cpi);//删除指定cpi点迹
+    void ClearPoints();//删除所有点迹
+    void SetAutoClearPointsCpi(int cpi = 20);//设置自动清点cpi
+    void SetAutoClearPointsByCpi(bool enable);//设置是否根据cpi间隔自动清除航迹
+    void ShowPoints();//显示点迹
+    void HidePoints();//隐藏点迹
 
     //航迹相关
-    //添加航迹
-    void AddTrackPoint(const RadarTrackInfo& info);
-    //删除指定批号航迹
-    void RemoveTrack(int index);
-    //删除所有航迹
-    void ClearTracks();
-    /**
-     * @brief 设置是否根据时间自动清除航迹
-     * @param enbale:使能
-     * @param timeout_msec:航迹超时时间(ms)，使能关时无效
-     */
-    void SetAutoClearTracksByTime(bool enable, int timeout_msec = 20000);
-    //显示航迹
-    void ShowTracks();
-    //隐藏航迹
-    void HideTracks();
+    void SetTracksColor(const QColor& color);//设置未标记的航迹颜色
+    void SetTracksMarkedColor(const QColor& color);//设置标记的航迹颜色
+    void AddTrackPoint(RadarTrackInfo info);//添加航迹
+    void RemoveTrack(int index);//删除指定批号航迹
+    void ClearTracks();//删除所有航迹
+    void SetAutoClearTracksTime(int msec);//设置自动清航超时时间
+    void SetAutoClearTracksByTime(bool enable);//设置是否根据时间自动清除航迹
+    void ShowTracks();//显示航迹
+    void HideTracks();//隐藏航迹
 
-    //手动清屏
-    void ClearAll();
-
-
-    //设置
-    void SetRange(double range_meter);
-    //设置点迹颜色
-    void SetPointsColor(const QColor& color);
-    //设置航迹颜色
-    void SetTracksColor(const QColor& color);
-    void SetTracksMarkedColor(const QColor& color);
+    //PPI相关
+    void SetRange(double range_meter);//设置量程
+    void SetNorthAngle(double angle);//设置北向角
+    void SetPosition(double longitude, double latitude, double height); //设置位置
+    void SetDateTime(const QDateTime& date_time);//设置时间
+    void ClearAll();//手动清屏
 
   protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
@@ -89,8 +69,11 @@ class PlanPositionIndicator : public QwtPolarPlot {
     void InitPoints();//初始化点迹
     void InitTimer();//初始化定时器
 
-    //左上标签相关
-    void UpdateLabel();
+    //标签相关
+    void UpdateLeftUpLabel();//左上
+    void UpdateLeftDownLabel();//左下
+    void UpdateRightUpLabel();//右上
+    void UpdateRightDownLabel();//右下
 
     //菜单相关
     void SetPointsStatus(bool is_show);//设置点迹显隐状态
@@ -115,11 +98,26 @@ class PlanPositionIndicator : public QwtPolarPlot {
     QwtPolarPanner* panner_ = nullptr;//平移器
     QwtPolarMagnifier* magnifier_ = nullptr;//缩放器
 
+    //标签数据
+    //左上
+    double north_angle_ = 0;//北向角
+    double mouse_radius_ = 0;//鼠标距离
+    double mouse_azimuth_ = 0;//鼠标方位
+    //左下
+    int count_points_ = 0; //点迹总数
+    int count_tracks_ = 0; //航迹总数
+    //右上
+    double longitude_ = 0; //经度
+    double latitude_ = 0; //纬度
+    double height_ = 0; //高度
+    //右下
+    QDateTime current_date_time_; //时间
+
     //左上标签
-    QLabel* label_ = nullptr;
-    double north_angle_ = 0;
-    double mouse_radius_ = 0;
-    double mouse_azimuth_ = 0;
+    QLabel* left_up_label_ = nullptr;
+    QLabel* left_down_label_ = nullptr;
+    QLabel* right_up_label_ = nullptr;
+    QDateTimeEdit* right_down_label_ = nullptr;
 
     //右键菜单
     QMenu* menu_ = nullptr;
@@ -127,7 +125,7 @@ class PlanPositionIndicator : public QwtPolarPlot {
     //点迹
     RadarPoints* radar_points_ = nullptr;
     bool is_show_points_ = true;//是否显示点迹
-    bool is_auto_clear_points_ = false;//是否自动清点
+    bool is_auto_clear_points_ = true;//是否自动清点
     int auto_clear_points_cpi_ = 20;//自动清点cpi间隔
 
     //航迹
@@ -137,6 +135,7 @@ class PlanPositionIndicator : public QwtPolarPlot {
     QColor tracks_marked_color = Qt::blue;
     int max_marked_count_ = 5;
     int marked_count_ = 0;
+    int track_timeout_msec_ = 10000;//超时时间ms
     QTimer* timer_auto_clear_tracks_ = nullptr;//自动清航定时器
 
     //刷新

@@ -4,10 +4,10 @@
 
 RadarTrackTableModel::RadarTrackTableModel(QObject* parent) : QAbstractTableModel(parent) {
     head_list_.append("批号");
-    head_list_.append("距离");
-    head_list_.append("方位");
-    head_list_.append("速度");
-    head_list_.append("航向");
+    head_list_.append("距离(m)");
+    head_list_.append("方位(°)");
+    head_list_.append("速度(m/s)");
+    head_list_.append("航向(°)");
     head_list_.append("类别");
 }
 //获取表头
@@ -66,21 +66,17 @@ bool RadarTrackTableModel::setData(const QModelIndex& index, const QVariant& val
     return false;
 }
 //添加项目
-void RadarTrackTableModel::AddItem(const TrackTableItem& item) {
+void RadarTrackTableModel::AddItem(const RadarTrackInfo& info) {
     QVariantList list;
-    list.append(item.index);
-    list.append(item.distance);
-    list.append(item.azimuth);
-    list.append(item.velocity);
-    list.append(item.course);
-    list.append(item.type);
+    list.append(info.index);
+    list.append(info.radius);
+    list.append(info.azimuth);
+    list.append(info.velocity);
+    list.append(info.course);
+    list.append(info.type);
     //查找是否存在该批号
-    int i = FindItemByIndex(item_list_, item.index);
+    int i = FindItemByIndex(item_list_, info.index);
     beginResetModel();
-    //大于容量，移除末尾
-    if (item_list_.count() > capacity_) {
-        item_list_.removeLast();
-    }
     if (i >= 0) {
         //如果有该批，修改
         item_list_[i] = list;
@@ -92,12 +88,13 @@ void RadarTrackTableModel::AddItem(const TrackTableItem& item) {
 }
 //删除项目
 void RadarTrackTableModel::RemoveItem(int index) {
-    //查找是否存在该批号
-    int i = FindItemByIndex(item_list_, index);
     beginResetModel();
-    //找到则删除对应批号的项目
+    int i = FindItemByIndex(item_list_, index);
     if (i >= 0) {
         item_list_.removeAt(i);
+    } else {
+        i = FindItemByIndex(marked_item_list_, index);
+        marked_item_list_.removeAt(i);
     }
     endResetModel();
 }

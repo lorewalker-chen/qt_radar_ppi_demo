@@ -19,6 +19,9 @@ class RadarPointsData: public QwtSeriesData<QwtPointPolar> {
     //获取点迹容量
     int Capacity();
 
+    //获取点迹数量
+    int Count();
+
   private:
     //将带cpi的数据重组成一个列表
     void RecombineData();

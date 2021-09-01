@@ -50,6 +50,10 @@ void RadarPoints::SetCapacity(int capacity) {
 int RadarPoints::Capacity() {
     return points_data_->Capacity();
 }
+//获取点迹数量
+int RadarPoints::Count() {
+    return points_data_->Count();
+}
 //初始化
 void RadarPoints::InitAll() {
     InitSymbol();//初始化标志

@@ -32,6 +32,9 @@ class RadarPoints {
     //获取点迹容量
     int Capacity();
 
+    //获取点迹数量
+    int Count();
+
   private:
     //初始化
     void InitAll();

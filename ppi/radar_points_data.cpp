@@ -56,6 +56,10 @@ void RadarPointsData::SetCapacity(int capacity) {
 int RadarPointsData::Capacity() {
     return capacity_;
 }
+//获取点迹数量
+int RadarPointsData::Count() {
+    return count_;
+}
 //将带cpi的数据重组成一个列表
 void RadarPointsData::RecombineData() {
     data_.clear();

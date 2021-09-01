@@ -1,16 +1,9 @@
 #ifndef RADARTRACKTABLEMODEL_H
 #define RADARTRACKTABLEMODEL_H
 
-#include <QAbstractTableModel>
+#include "radar_track_info.h"
 
-struct TrackTableItem {
-    int index = 0; //批号
-    double distance = 0; //距离
-    double azimuth = 0; //方位
-    double velocity = 0; //速度
-    double course = 0; //航向
-    QString type = ""; //类别
-};
+#include <QAbstractTableModel>
 
 class RadarTrackTableModel : public QAbstractTableModel {
     Q_OBJECT
@@ -30,7 +23,7 @@ class RadarTrackTableModel : public QAbstractTableModel {
 
   public slots:
     //添加
-    void AddItem(const TrackTableItem& item);
+    void AddItem(const RadarTrackInfo& info);
     //删除
     void RemoveItem(int index);
     //标记
@@ -47,8 +40,6 @@ class RadarTrackTableModel : public QAbstractTableModel {
     QList<QVariantList> marked_item_list_;
     //未标记的航迹
     QList<QVariantList> item_list_;
-    //未标记航迹容量
-    int capacity_ = 50;
 
   signals:
 
