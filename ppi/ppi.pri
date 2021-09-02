@@ -2,6 +2,7 @@ SOURCES += \
     $$PWD/plan_position_indicator.cpp \
     $$PWD/radar_points.cpp \
     $$PWD/radar_points_data.cpp \
+    $$PWD/radar_radius_line.cpp \
     $$PWD/radar_track.cpp \
     $$PWD/radar_track_data.cpp \
     $$PWD/radar_track_marker.cpp \
@@ -11,6 +12,7 @@ HEADERS += \
     $$PWD/plan_position_indicator.h \
     $$PWD/radar_points.h \
     $$PWD/radar_points_data.h \
+    $$PWD/radar_radius_line.h \
     $$PWD/radar_track.h \
     $$PWD/radar_track_data.h \
     $$PWD/radar_track_info.h \

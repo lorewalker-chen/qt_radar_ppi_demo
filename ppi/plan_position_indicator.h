@@ -10,6 +10,7 @@
 class QwtPolarGrid;
 class QwtPolarPanner;
 class QwtPolarMagnifier;
+class RadarRadiusLine;
 
 class QLabel;
 class QDateTimeEdit;
@@ -45,6 +46,7 @@ class PlanPositionIndicator : public QwtPolarPlot {
 
     //PPI相关
     void SetRange(double range_meter);//设置量程
+    void SetAngleRange(int start, int end); //设置角度范围
     void SetNorthAngle(double angle);//设置北向角
     void SetPosition(double longitude, double latitude, double height); //设置位置
     void SetDateTime(const QDateTime& date_time);//设置时间
@@ -64,6 +66,7 @@ class PlanPositionIndicator : public QwtPolarPlot {
     void InitGrid();//初始化网格
     void InitPanner();//初始化平移器
     void InitMagnifier();//初始化放大器
+    void InitRadarLines();//初始化雷达角度范围
     void InitLabel();//初始化左上角标签
     void InitMenu();//初始化右键菜单
     void InitPoints();//初始化点迹
@@ -86,8 +89,9 @@ class PlanPositionIndicator : public QwtPolarPlot {
     //标记航迹
     void MarkTrack(const QwtPointPolar& polar);
 
-    //刷新
-    void Refresh();
+    //PPI控制
+    void Refresh();//刷新
+    void UpdateRadarLines();//更新线
 
   private:
     //整体样式
@@ -97,6 +101,15 @@ class PlanPositionIndicator : public QwtPolarPlot {
     //控制
     QwtPolarPanner* panner_ = nullptr;//平移器
     QwtPolarMagnifier* magnifier_ = nullptr;//缩放器
+
+    //北向线
+    RadarRadiusLine* radar_zero_line_ = nullptr;
+
+    //雷达角度范围线
+    double angle_start_ = 0;
+    double angle_end_ = 0;
+    RadarRadiusLine* angle_line_start_ = nullptr;
+    RadarRadiusLine* angle_line_end_ = nullptr;
 
     //标签数据
     //左上
@@ -113,7 +126,7 @@ class PlanPositionIndicator : public QwtPolarPlot {
     //右下
     QDateTime current_date_time_; //时间
 
-    //左上标签
+    //标签
     QLabel* left_up_label_ = nullptr;
     QLabel* left_down_label_ = nullptr;
     QLabel* right_up_label_ = nullptr;

@@ -1,4 +1,5 @@
 #include "plan_position_indicator.h"
+#include "radar_radius_line.h"
 
 #include "qwt_polar_grid.h"
 #include "qwt_polar_panner.h"
@@ -70,6 +71,11 @@ PlanPositionIndicator::~PlanPositionIndicator() {
         timer_refresh_->stop();
     }
     timer_refresh_->deleteLater();
+
+    delete radar_zero_line_;
+
+    delete angle_line_start_;
+    delete angle_line_end_;
 
     delete radar_points_;
 
@@ -227,14 +233,27 @@ void PlanPositionIndicator::SetRange(double range_meter) {
     //重新设置极径刻度
     setScale(QwtPolar::ScaleRadius, 0, range_meter);
     range_ = range_meter;
+    //更新线
+    UpdateRadarLines();
     //更改刷新标志
     is_need_refresh_ = true;
+}
+//设置角度范围
+void PlanPositionIndicator::SetAngleRange(int start, int end) {
+    angle_start_ = start;
+    angle_end_ = end;
+    //更新线
+    UpdateRadarLines();
 }
 //设置北向角
 void PlanPositionIndicator::SetNorthAngle(double angle) {
     north_angle_ = angle;
-    //更新左上标签
-    UpdateLeftUpLabel();
+    //更新右上标签
+    UpdateRightUpLabel();
+    //更新线
+    UpdateRadarLines();
+    //更改刷新标志
+    is_need_refresh_ = true;
 }
 //设置位置
 void PlanPositionIndicator::SetPosition(double longitude, double latitude, double height) {
@@ -243,12 +262,16 @@ void PlanPositionIndicator::SetPosition(double longitude, double latitude, doubl
     height_ = height;
     //更新右上标签
     UpdateRightUpLabel();
+    //更改刷新标志
+    is_need_refresh_ = true;
 }
 //设置时间
 void PlanPositionIndicator::SetDateTime(const QDateTime& date_time) {
     current_date_time_ = date_time;
     //更新右下标签
     UpdateRightDownLabel();
+    //更改刷新标志
+    is_need_refresh_ = true;
 }
 //手动清屏
 void PlanPositionIndicator::ClearAll() {
@@ -296,6 +319,7 @@ void PlanPositionIndicator::InitAll() {
     InitGrid();//初始化网格
     InitPanner();//初始化平移器
     InitMagnifier();//初始化放大器
+    InitRadarLines();//初始化雷达角度范围
     InitPoints();//初始化点迹
     InitLabel();//初始化标签
     InitMenu();//初始化右键菜单
@@ -354,6 +378,20 @@ void PlanPositionIndicator::InitMagnifier() {
     magnifier_->setMouseButton(Qt::NoButton);
     //开启可放大
     magnifier_->setEnabled(true);
+}
+//初始化雷达角度范围
+void PlanPositionIndicator::InitRadarLines() {
+    //法线
+    radar_zero_line_ = new RadarRadiusLine(this);
+    radar_zero_line_->SetText("R");
+
+    //起始
+    angle_line_start_ = new RadarRadiusLine(this);
+    angle_line_start_->AutoText(true);
+
+    //结束
+    angle_line_end_ = new RadarRadiusLine(this);
+    angle_line_end_->AutoText(true);
 }
 //初始化标签
 void PlanPositionIndicator::InitLabel() {
@@ -439,8 +477,7 @@ void PlanPositionIndicator::InitTimer() {
 }
 //更新左上角标签
 void PlanPositionIndicator::UpdateLeftUpLabel() {
-    QString str = QString("北向角：%0°\n距离：%1m\n方位：%2°")
-                  .arg(QString::number(north_angle_, 'f', 2))
+    QString str = QString("距离：%0m\n方位：%1°")
                   .arg(QString::number(mouse_radius_, 'f', 2))
                   .arg(QString::number(mouse_azimuth_, 'f', 2));
     left_up_label_->setText(str);
@@ -460,14 +497,15 @@ void PlanPositionIndicator::UpdateLeftDownLabel() {
     //调整大小
     left_down_label_->adjustSize();
     //更新标签位置
-    left_down_label_->move(10, height() - left_up_label_->height() - 10);
+    left_down_label_->move(10, height() - left_down_label_->height() - 10);
 }
 //更新右上角标签
 void PlanPositionIndicator::UpdateRightUpLabel() {
-    QString str = QString("经度：%0°\n纬度：%1°\n高度：%2m")
+    QString str = QString("经度：%0°\n纬度：%1°\n高度：%2m\n北向角：%4°")
                   .arg(QString::number(longitude_, 'f', 6))
                   .arg(QString::number(latitude_, 'f', 6))
-                  .arg(QString::number(height_, 'f', 3));
+                  .arg(QString::number(height_, 'f', 3))
+                  .arg(QString::number(north_angle_, 'f', 2));
     right_up_label_->setText(str);
     //调整大小
     right_up_label_->adjustSize();
@@ -551,10 +589,29 @@ void PlanPositionIndicator::MarkTrack(const QwtPointPolar& polar) {
         //发送改变标记的航迹批号，和是否标记
         emit MarkedTrack(index, !is_markd);
     }
+    //更改刷新标志
+    is_need_refresh_ = true;
 }
 //刷新
 void PlanPositionIndicator::Refresh() {
     if (is_need_refresh_) {
         replot();
     }
+}
+//更新线
+void PlanPositionIndicator::UpdateRadarLines() {
+    //雷达法相线
+    radar_zero_line_->SetPosition(QwtPointPolar(north_angle_, range_));
+    //角度范围线
+    double start = angle_start_ + north_angle_;
+    if (start > 360) {
+        start -= 360;
+    }
+    double end = angle_end_ + north_angle_;
+    if (end > 360) {
+        end -= 360;
+    }
+
+    angle_line_start_->SetPosition(QwtPointPolar(start, range_));
+    angle_line_end_->SetPosition(QwtPointPolar(end, range_));
 }

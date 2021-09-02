@@ -8,12 +8,14 @@ MainWindow::MainWindow(QWidget* parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
     ppi_ = new PlanPositionIndicator(ui->widget_ppi);
+    //设置雷达范围
+    ppi_->SetAngleRange(313, 47);
     //设置位置
     ppi_->SetPosition(1, 2, 3);
     //设置北向角
-//    ppi_->SetNorthAngle(180);
+    ppi_->SetNorthAngle(90);
     //设置ppi量程
-//    ppi_->SetRange(1600);
+    ppi_->SetRange(1600);
     //航迹
     ppi_->SetTracksColor(Qt::green);
     ppi_->SetTracksMarkedColor(Qt::white);
