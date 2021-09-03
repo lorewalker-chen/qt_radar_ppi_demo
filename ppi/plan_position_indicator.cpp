@@ -553,7 +553,7 @@ void PlanPositionIndicator::RemoveTrackFromHash(int index) {
  * 判断当前时间与航迹时间的差是否满足超时
  */
 void PlanPositionIndicator::AutoClearTracksByTime() {
-    QTime current_time = QTime::currentTime();
+    QTime current_time = current_date_time_.time();
     for (int index : radar_tracks_.keys()) {
         if (radar_tracks_.value(index)->GetTrackTime().msecsTo(current_time) >= track_timeout_msec_) {
             RemoveTrack(index);

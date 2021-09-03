@@ -74,15 +74,22 @@ void RadarTrackTableModel::AddItem(const RadarTrackInfo& info) {
     list.append(info.velocity);
     list.append(info.course);
     list.append(info.type);
-    //查找是否存在该批号
-    int i = FindItemByIndex(item_list_, info.index);
     beginResetModel();
+    //查找标记列表中是否存在该批号
+    int i = FindItemByIndex(marked_item_list_, info.index);
     if (i >= 0) {
         //如果有该批，修改
-        item_list_[i] = list;
+        marked_item_list_[i] = list;
     } else {
-        //如果无该批，添加
-        item_list_.prepend(list);
+        //如果无该批，查找未标记列表中是否存在该批号
+        i = FindItemByIndex(item_list_, info.index);
+        if (i >= 0) {
+            //如果有该批，修改
+            item_list_[i] = list;
+        } else {
+            //如果无该批，添加
+            item_list_.prepend(list);
+        }
     }
     endResetModel();
 }
