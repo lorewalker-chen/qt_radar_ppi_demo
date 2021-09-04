@@ -7,35 +7,40 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
+
+
     ppi_ = new PlanPositionIndicator(ui->widget_ppi);
+
+    //PPI
     //设置雷达范围
+    ppi_->SetRange(2000);//2km
     ppi_->SetAngleRange(313, 47);
-    //设置位置
-    ppi_->SetPosition(1, 2, 3);
+
     //设置北向角
     ppi_->SetNorthAngle(90);
-    //设置ppi量程
-    ppi_->SetRange(1600);
-    //航迹
-    ppi_->SetTracksColor(Qt::green);
-    ppi_->SetTracksMarkedColor(Qt::white);
-    //开启自动刷新航迹
-    ppi_->SetAutoClearTracksTime(5000);
-    ppi_->SetAutoClearTracksByTime(true);
+    //设置位置
+    ppi_->SetPosition(1, 2, 3);
 
-    //开启自动刷新点迹
-    ppi_->SetAutoClearPointsByCpi(true);
-    //设置点迹颜色
-    ppi_->SetPointsColor(Qt::red);
+    //点迹设置
+    ppi_->SetPointsColor(Qt::white);//点迹颜色，白色
+    ppi_->SetAutoClearPointsCpi(10);//每10个cpi自动消点
+    ppi_->SetAutoClearPointsByCpi(true);//开启自动消点
 
-    //表格
+    //航迹设置
+    ppi_->SetTracksColor(Qt::green);//航迹颜色，绿色
+    ppi_->SetTracksMarkedColor(Qt::red);//航迹标记颜色，红色
+    ppi_->SetAutoClearTracksTime(5000);//每5s自动消航
+    ppi_->SetAutoClearTracksByTime(true);//开启自动消航
+
+    //表格模型
     model_ = new RadarTrackTableModel;
-    ui->tableView->setModel(model_);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-
+    //关联标记、删除航迹信号槽
     connect(ppi_, &PlanPositionIndicator::MarkedTrack, model_, &RadarTrackTableModel::MarkItem);
     connect(ppi_, &PlanPositionIndicator::RemovedTrack, model_, &RadarTrackTableModel::RemoveItem);
+
+    //表格模型依附到空间
+    ui->tableView->setModel(model_);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     //添加点迹定时器
     timer_add_point_ = new QTimer;
@@ -75,7 +80,7 @@ void MainWindow::AddPoint() {
 }
 
 void MainWindow::AddTrack() {
-    info.index = info.radius / 100;
+    info.index = info.radius / 1000;
     info.radius += 10;
     info.azimuth += 1;
     info.type = "人";
