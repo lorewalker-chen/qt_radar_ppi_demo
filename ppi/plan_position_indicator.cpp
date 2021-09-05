@@ -165,6 +165,12 @@ void PlanPositionIndicator::AddTrackPoint(RadarTrackInfo info) {
     }
     //添加航迹点
     radar_tracks_.value(info.index)->AddTrackPoint(info);
+    //关注标记的航迹，如果无标记的航迹则关注最近的点
+    if (info.index == focus_track_index_ || (focus_track_index_ == -1 && info.radius < focus_track_radius_)) {
+        focus_track_radius_ = info.radius;
+        focus_track_azimuth_ = info.azimuth;
+        emit FocusOnTrackPolar(focus_track_radius_, focus_track_azimuth_);
+    }
     //如果不显示航迹
     if (!is_show_tracks_) {
         HideTracks();
@@ -445,6 +451,12 @@ void PlanPositionIndicator::InitMenu() {
     menu_->addAction(show_tracks);
     //间隔符
     menu_->addSeparator();
+    //点迹自动刷新
+    QAction* auto_clear_points = new QAction("点迹自动刷新", menu_);
+    auto_clear_points->setCheckable(true);
+    auto_clear_points->setChecked(true);
+    connect(auto_clear_points, &QAction::toggled, this, &PlanPositionIndicator::SetAutoClearPointsByCpi);
+    menu_->addAction(auto_clear_points);
     //航迹自动刷新
     QAction* auto_clear_tracks = new QAction("航迹自动刷新", menu_);
     auto_clear_tracks->setCheckable(true);
@@ -580,9 +592,17 @@ void PlanPositionIndicator::MarkTrack(const QwtPointPolar& polar) {
             if (marked_count_ >= max_marked_count_) {
                 return;
             } else {
+                //更改关注的航迹批号
+                focus_track_index_ = index;
+                //计数加一
                 marked_count_ += 1;
             }
         } else {
+            //如果是当前关注的批号，取消关注
+            if (focus_track_index_ == index) {
+                focus_track_index_ = -1;
+            }
+            //计数减一
             marked_count_ -= 1;
         }
         radar_tracks_.value(index)->Mark();

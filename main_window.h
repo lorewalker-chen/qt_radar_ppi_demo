@@ -21,6 +21,7 @@ class MainWindow : public QMainWindow {
   private slots:
     void AddPoint();
     void AddTrack();
+    void FocusOnPolar(double radius, double azimuth);
 
   private:
     Ui::MainWindow* ui;
