@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     //PPI
     //设置雷达范围
-    ppi_->SetRange(2000);//2km
+    ppi_->SetRange(20000);//20km
     ppi_->SetAngleRange(313, 47);
 
     //设置北向角
@@ -82,7 +82,7 @@ void MainWindow::AddPoint() {
 }
 
 void MainWindow::AddTrack() {
-    info.index = info.radius / 1000;
+    info.index = info.radius / 200;
     info.radius += 10;
     info.azimuth += 1;
     info.type = "人";
