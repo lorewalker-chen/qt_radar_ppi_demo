@@ -150,9 +150,6 @@ class PlanPositionIndicator : public QwtPolarPlot {
     int marked_count_ = 0;
     int track_timeout_msec_ = 10000;//超时时间ms
     QTimer* timer_auto_clear_tracks_ = nullptr;//自动清航定时器
-    int focus_track_index_ = -1;//关注的航迹批号
-    double focus_track_radius_ = range_;//关注的航迹点距离
-    double focus_track_azimuth_ = 0;//关注的航迹点方位
 
     //刷新
     bool is_need_refresh_ = false; //控制是否需要刷新
@@ -161,7 +158,6 @@ class PlanPositionIndicator : public QwtPolarPlot {
   signals:
     void MarkedTrack(int index, bool is_marked);
     void RemovedTrack(int index);
-    void FocusOnTrackPolar(double radius, double azimuth);
 };
 
 

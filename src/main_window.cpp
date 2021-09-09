@@ -38,8 +38,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ppi_, &PlanPositionIndicator::MarkedTrack, model_, &RadarTrackTableModel::MarkItem);
     connect(ppi_, &PlanPositionIndicator::RemovedTrack, model_, &RadarTrackTableModel::RemoveItem);
 
-    connect(ppi_, &PlanPositionIndicator::FocusOnTrackPolar, this, &MainWindow::FocusOnPolar);
-
     //表格模型依附到空间
     ui->tableView->setModel(model_);
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);

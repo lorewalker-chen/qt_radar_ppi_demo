@@ -165,12 +165,6 @@ void PlanPositionIndicator::AddTrackPoint(RadarTrackInfo info) {
     }
     //添加航迹点
     radar_tracks_.value(info.index)->AddTrackPoint(info);
-    //关注标记的航迹，如果无标记的航迹则关注最近的点
-    if (info.index == focus_track_index_ || (focus_track_index_ == -1 && info.radius < focus_track_radius_)) {
-        focus_track_radius_ = info.radius;
-        focus_track_azimuth_ = info.azimuth;
-        emit FocusOnTrackPolar(focus_track_radius_, focus_track_azimuth_);
-    }
     //如果不显示航迹
     if (!is_show_tracks_) {
         HideTracks();
