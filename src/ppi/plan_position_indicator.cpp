@@ -507,9 +507,23 @@ void PlanPositionIndicator::UpdateLeftDownLabel() {
 }
 //更新右上角标签
 void PlanPositionIndicator::UpdateRightUpLabel() {
-    QString str = QString("经度：%0°\n纬度：%1°\n高度：%2m\n北向角：%4°")
-                  .arg(QString::number(longitude_, 'f', 6))
-                  .arg(QString::number(latitude_, 'f', 6))
+    //经度文字，负数为西经
+    QString longitude_str;
+    if (longitude_ < 0) {
+        longitude_str = QString("%0°%1").arg(QString::number(-longitude_, 'f', 6)).arg("W");
+    } else {
+        longitude_str = QString("%0°%1").arg(QString::number(longitude_, 'f', 6)).arg("E");
+    }
+    //纬度文字，负数为南纬
+    QString latitude_str;
+    if (latitude_ < 0) {
+        latitude_str = QString("%0°%1").arg(QString::number(-latitude_, 'f', 6)).arg("S");
+    } else {
+        latitude_str = QString("%0°%1").arg(QString::number(latitude_, 'f', 6)).arg("N");
+    }
+    QString str = QString("经度：%0\n纬度：%1\n高度：%2m\n北向角：%4°")
+                  .arg(longitude_str)
+                  .arg(latitude_str)
                   .arg(QString::number(height_, 'f', 3))
                   .arg(QString::number(north_angle_, 'f', 2));
     right_up_label_->setText(str);
@@ -586,16 +600,10 @@ void PlanPositionIndicator::MarkTrack(const QwtPointPolar& polar) {
             if (marked_count_ >= max_marked_count_) {
                 return;
             } else {
-                //更改关注的航迹批号
-                focus_track_index_ = index;
                 //计数加一
                 marked_count_ += 1;
             }
         } else {
-            //如果是当前关注的批号，取消关注
-            if (focus_track_index_ == index) {
-                focus_track_index_ = -1;
-            }
             //计数减一
             marked_count_ -= 1;
         }

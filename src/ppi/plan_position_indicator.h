@@ -67,7 +67,7 @@ class PlanPositionIndicator : public QwtPolarPlot {
     void InitPanner();//初始化平移器
     void InitMagnifier();//初始化放大器
     void InitRadarLines();//初始化雷达角度范围
-    void InitLabel();//初始化左上角标签
+    void InitLabel();//初始化标签
     void InitMenu();//初始化右键菜单
     void InitPoints();//初始化点迹
     void InitTimer();//初始化定时器
