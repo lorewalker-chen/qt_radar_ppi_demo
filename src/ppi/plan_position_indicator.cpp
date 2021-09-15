@@ -561,6 +561,8 @@ void PlanPositionIndicator::RemoveTrackFromHash(int index) {
     //如果被标记，标记标志-1
     if (radar_tracks_.value(index)->IsMarked()) {
         marked_count_ -= 1;
+        //发送改变标记的航迹批号，和是否标记
+        emit MarkedTrack(index, !radar_tracks_.value(index)->IsMarked());
     }
     delete radar_tracks_[index];
     radar_tracks_[index] = nullptr;
